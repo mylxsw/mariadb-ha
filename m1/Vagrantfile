@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "centos/7"
+    config.vm.box_check_update = false
+    config.vm.network "private_network", ip: "192.168.33.10"
+    config.vm.synced_folder "../sync", "/vagrant_data"
+
+    config.vm.provision "shell", path: "../install-basic.sh"
+    config.vm.provision "shell" do |s|
+        s.path = "../install-database.sh"
+        s.args = ["3310"]
+    end
+    config.vm.provision "shell", path: "../init-master.sh"
+    config.vm.provision "shell", path: "../install-maxscale.sh"
+    config.vm.provision "shell" do |s|
+        s.path = "../install-keepalived.sh"
+        s.args = ["150"]
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+        hostnamectl set-hostname vm-3310
+    SHELL
+end
